@@ -8,11 +8,22 @@ import os
 app = FastAPI(title="Lifestyle Analysis API")
 
 # CORS middleware - allow both local and production origins
+# For production, we'll allow all Vercel deployments
 allowed_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
-    os.getenv("FRONTEND_URL", "https://dv-frontend.vercel.app")
 ]
+
+# Add production frontend URLs
+frontend_url = os.getenv("FRONTEND_URL", "")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
+# Allow all Vercel preview deployments
+allowed_origins.extend([
+    "https://dv-frontend.vercel.app",
+    "https://dv-frontend-git-main-*.vercel.app",
+])
 
 # Add any additional origins from environment variable
 if os.getenv("ADDITIONAL_ORIGINS"):
@@ -20,7 +31,7 @@ if os.getenv("ADDITIONAL_ORIGINS"):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Allow all Vercel domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
